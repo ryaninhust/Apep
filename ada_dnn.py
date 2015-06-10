@@ -104,13 +104,13 @@ class DNN(object):
 
 
     def predict_proba(self, X):
-        prob_result = np.zeros((X.shape[0], self.layer_sizes[-1]))
+        prob_result = []
         for i, _input in enumerate(np.array_split(X, 100)):
             if _input is not isinstance(_input, gnp.garray):
                 _input = gnp.garray(_input)
             self.dropouts = [0.0 for l in self.dropouts]
             output = self.feed_forward(_input)
-            prob_result[i] = output.as_numpy_array()
+            prob_result.append(output.as_numpy_array())
         prob_result = np.concatenate(prob_result)
         return prob_result
 
