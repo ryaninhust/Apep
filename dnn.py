@@ -90,7 +90,7 @@ class DNN(object):
         self.biases = np.load(biases_path)
 
 
-    def fit(self, X, y):
+    def fit(self, X, y, val_X=None, val_y=None):
         X = np.array(X)
         y = np.array(y)
         y = self._onehot_encode(y)
@@ -98,18 +98,20 @@ class DNN(object):
         for epoch, err in enumerate(
             self.fine_tune(self._minibatches(X, y), iters_per_epoch, self.epochs)
         ):
+            if epoch % 5 and val_y and val_X:
+                print "val_score:{0}".format(self.score(val_X, val_y))
             print"epoch:{0}    ein:{1}".format(epoch, err)
             self._adjust_learning_rate()
 
 
     def predict_proba(self, X):
-        prob_result = np.zeros((X.shape[0], self.layer_sizes[-1]))
-        for i, _input in enumerate(X):
+        prob_result = []
+        for _input in np.array_split(X, 100):
             if _input is not isinstance(_input, gnp.garray):
                 _input = gnp.garray(_input)
                 output = self.feed_forward(_input)
-                prob_result[i] = output.as_numpy_array()
-        return prob_result
+                prob_result.append(output)
+        return np.concatenate(prob_result)
 
 
     def predict(self, X):
